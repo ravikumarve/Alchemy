@@ -65,7 +65,7 @@ class SemanticChunker:
             r'^\s*[-]+\s*$',  # Separator lines
             r'^\s*_+\s*$',  # Separator lines
             r'^\s*\*\s*$',  # Bullet points without content
-            r'^\s*\d+\.\s*$',  Numbered lists without content
+            r'^\s*\d+\.\s*$',  # Numbered lists without content
         ]
 
         # Content type patterns

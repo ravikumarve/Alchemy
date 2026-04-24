@@ -30,6 +30,9 @@ try:
     LANGGRAPH_AVAILABLE = True
 except ImportError:
     LANGGRAPH_AVAILABLE = False
+    # Create dummy types for type hints when LangGraph is not available
+    StateGraph = type('StateGraph', (), {})  # type: ignore
+    END = None  # type: ignore
     logging.warning("LangGraph not available, using fallback execution")
 
 # Local imports
