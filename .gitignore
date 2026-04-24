@@ -1,0 +1,86 @@
+# ALCHEMY - Temporal Content Transmuter
+
+# Agent definitions (copied from agency-agents, not to be committed)
+/agents/
+/AGENTS.md
+/data-consolidation-agent.md
+/design-ui-designer.md
+/design-ux-architect.md
+/engineering-ai-engineer.md
+/engineering-backend-architect.md
+/engineering-code-reviewer.md
+/engineering-devops-automator.md
+/engineering-frontend-developer.md
+/engineering-software-architect.md
+/marketing-content-creator.md
+/specialized-workflow-architect.md
+/testing-api-tester.md
+/testing-performance-benchmarker.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+raw_ore/
+processed_gold/
+*.log
+.env
+.env.local
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
