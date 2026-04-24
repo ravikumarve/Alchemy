@@ -31,10 +31,10 @@ ALCHEMY is a production-ready content transmutation system that extracts evergre
 - **UI Designer**: shadcn/ui components
 - **UX Architect**: User experience design
 
-### Phase 4: Three-Agent Core Implementation ✅
-- **Archaeologist**: Data Miner (SemanticChunker, TableExtractor)
-- **Trend-Jacker**: Contextualizer (HookLibrary, AttentionMetrics)
-- **Visionary**: Media Architect (PromptGenerator, StoryBoarder)
+### Phase 4: Three-Agent Core Implementation 🚧
+- **Archaeologist**: Data Miner (SemanticChunker, TableExtractor) ✅ COMPLETE
+- **Trend-Jacker**: Contextualizer (HookLibrary, AttentionMetrics) ⏳ PENDING
+- **Visionary**: Media Architect (PromptGenerator, StoryBoarder) ⏳ PENDING
 
 ### Phase 5: Testing & Quality Assurance 🚧
 - **API Tester**: Integration tests and edge case coverage
@@ -46,6 +46,32 @@ ALCHEMY is a production-ready content transmutation system that extracts evergre
 - **Backend Architect**: Production deployment
 - **Workflow Architect**: Operational workflows
 
+## 📊 Current Status
+
+### ✅ Completed Components
+- **Phase 1**: Architecture & Workflow Design
+- **Phase 2**: Backend & Pipeline Development
+- **Phase 3**: Frontend & Dashboard Development
+- **Archaeologist Agent**: Complete 7-step workflow implementation
+- **FastAPI Backend**: 8 REST endpoints with SQLite database
+- **Next.js Dashboard**: Real-time monitoring and file management
+- **Testing**: Unit tests for all components
+
+### 🚧 In Progress
+- **Phase 4**: Three-Agent Core Implementation (Archaeologist ✅, Trend-Jacker ⏳, Visionary ⏳)
+
+### ⏳ Pending
+- **Phase 5**: Testing & Quality Assurance
+- **Phase 6**: DevOps & Deployment
+- **Trend-Jacker Agent**: Hook generation and contextualization
+- **Visionary Agent**: Media architecture and B-roll generation
+
+### 🐛 Recent Fixes
+- Fixed SQLAlchemy metadata naming conflicts
+- Fixed syntax errors in semantic chunker
+- Fixed LangGraph import handling for fallback mode
+- System now works correctly without LangGraph dependency
+
 ## 📁 Directory Structure
 
 ```
@@ -54,28 +80,42 @@ alchemy/
 ├── processed_gold/      # Output: Finalized assets (zip files)
 ├── src/
 │   ├── agents/          # OpenCode agent definitions
-│   │   ├── archaeologist.py
-│   │   ├── archaeologist_state.py
-│   │   ├── trend_jacker.py
-│   │   └── visionary.py
+│   │   ├── archaeologist.py          # ✅ COMPLETE
+│   │   ├── archaeologist_state.py    # ✅ COMPLETE
+│   │   ├── trend_jacker.py           # ⏳ PENDING
+│   │   └── visionary.py               # ⏳ PENDING
 │   ├── pipeline/        # Core extraction/transmutation logic
-│   │   ├── text_extractor.py
-│   │   ├── semantic_chunker.py
-│   │   ├── table_extractor.py
-│   │   └── data_packager.py
+│   │   ├── text_extractor.py          # ✅ COMPLETE
+│   │   ├── semantic_chunker.py        # ✅ COMPLETE
+│   │   ├── table_extractor.py         # ✅ COMPLETE
+│   │   └── data_packager.py           # ✅ COMPLETE
 │   ├── api/             # FastAPI backend
-│   │   ├── main.py
-│   │   └── routes/
+│   │   ├── main.py                    # ✅ COMPLETE
+│   │   ├── database.py                # ✅ COMPLETE
+│   │   ├── config.py                  # ✅ COMPLETE
+│   │   └── routes/                    # ✅ COMPLETE
 │   └── ui/              # shadcn/ui dashboard
-│       ├── app/
-│       └── components/
+│       ├── app/                       # ✅ COMPLETE
+│       │   ├── page.tsx              # Main dashboard
+│       │   ├── layout.tsx            # Root layout
+│       │   └── packages/[packageId]/ # Package details
+│       ├── components/               # ✅ COMPLETE
+│       │   └── ui/                   # shadcn/ui components
+│       └── lib/                      # ✅ COMPLETE
+│           └── utils.ts              # Utility functions
 ├── tests/               # Test suites
+│   ├── test_archaeologist.py          # ✅ COMPLETE
+│   └── test_api.py                   # ✅ COMPLETE
 ├── docs/
 │   ├── architecture/    # Architecture specifications
+│   │   └── BACKEND-ARCHITECTURE.md   # ✅ COMPLETE
 │   └── workflows/       # Workflow specifications
+│       └── WORKFLOW-archaeologist-content-processing.md  # ✅ COMPLETE
 ├── requirements.txt     # Python dependencies
 ├── package.json         # Dashboard dependencies
-└── docker-compose.yml   # Local development setup
+├── start.sh             # Startup script
+├── .env.example         # Environment configuration template
+└── README.md            # This file
 ```
 
 ## 🚀 Quick Start
@@ -90,8 +130,8 @@ alchemy/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/alchemy.git
-   cd alchemy
+   git clone https://github.com/ravikumarve/Alchemy.git
+   cd Alchemy
    ```
 
 2. **Install Python dependencies**
@@ -423,6 +463,136 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 For support, please open an issue on GitHub or contact [your-email@example.com].
+
+## 🎯 Current Capabilities
+
+### ✅ What Works Now
+
+**Content Processing:**
+- ✅ Upload and process PDF, TXT, and HTML files
+- ✅ Extract text content with multiple fallback methods
+- ✅ Perform semantic analysis to identify evergreen content
+- ✅ Extract tables from multiple formats (Markdown, HTML, CSV, ASCII)
+- ✅ Filter content by quality and relevance
+- ✅ Generate structured packages for downstream processing
+
+**API & Backend:**
+- ✅ RESTful API with 8 endpoints
+- ✅ Background job processing
+- ✅ SQLite database with 6 tables
+- ✅ Comprehensive error handling
+- ✅ Request validation and type safety
+
+**Frontend Dashboard:**
+- ✅ Real-time job monitoring
+- ✅ File upload interface
+- ✅ Package management and viewing
+- ✅ System metrics and statistics
+- ✅ Responsive design with dark mode
+
+**Testing:**
+- ✅ Unit tests for all components
+- ✅ API endpoint tests
+- ✅ Integration test framework
+
+### ⏳ Coming Soon
+
+**Agent Pipeline:**
+- ⏳ Trend-Jacker agent for contextualization
+- ⏳ Visionary agent for media generation
+- ⏳ Complete multi-agent workflow
+
+**Advanced Features:**
+- ⏳ Performance optimization and caching
+- ⏳ Advanced analytics and reporting
+- ⏳ Batch processing capabilities
+- ⏳ Export to multiple formats
+
+**Deployment:**
+- ⏳ Docker containerization
+- ⏳ CI/CD pipelines
+- ⏳ Production monitoring
+- ⏳ Automated backups
+
+### 🔧 System Limitations
+
+**Current Constraints:**
+- Single-threaded processing (no parallel processing)
+- No GPU acceleration (CPU-only operation)
+- Limited to 80-second processing timeout
+- No distributed processing support
+- Basic error recovery (manual intervention required)
+
+**Known Limitations:**
+- Large files (>50MB) may timeout
+- Complex PDF layouts may have extraction issues
+- Limited support for scanned documents (no OCR)
+- No real-time collaboration features
+- Basic monitoring and alerting
+
+## 🔧 Troubleshooting
+
+### Common Issues and Solutions
+
+#### Database Initialization Error
+**Problem:** `Attribute name 'metadata' is reserved when using the Declarative API`
+
+**Solution:** This has been fixed in the latest version. The database columns have been renamed:
+- `Package.metadata` → `Package.package_metadata`
+- `ExtractedContent.metadata` → `ExtractedContent.chunk_metadata`
+- `ExtractedTable.metadata` → `ExtractedTable.table_metadata`
+
+#### LangGraph Import Error
+**Problem:** System fails when LangGraph is not installed
+
+**Solution:** The system now runs in fallback mode without LangGraph. All core functionality works without this dependency. If you want LangGraph support:
+```bash
+pip install langgraph langchain langchain-core
+```
+
+#### Syntax Error in Semantic Chunker
+**Problem:** `invalid syntax. Perhaps you forgot a comma? (semantic_chunker.py, line 68)`
+
+**Solution:** This has been fixed. Ensure you have the latest version from the repository.
+
+#### Startup Script Issues
+**Problem:** Startup script fails with "externally-managed-environment" error
+
+**Solution:** The startup script may need adjustment for your Python environment. Start manually:
+```bash
+# Initialize database
+python3 -c "from src.api.database import init_db; init_db()"
+
+# Start API server
+uvicorn src.api.main:app --reload
+
+# In another terminal, start dashboard
+npm run dev
+```
+
+#### Frontend Dashboard Not Connecting to API
+**Problem:** Dashboard shows connection errors
+
+**Solution:** Ensure the API is running and check the environment variables:
+```bash
+# In .env.local
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+### System Requirements
+
+- **Python:** 3.9+ (tested with 3.12)
+- **Node.js:** 18+ (tested with 20.x)
+- **Memory:** Minimum 4GB RAM recommended
+- **Storage:** Minimum 1GB free space
+- **OS:** Linux, macOS, or Windows with WSL2
+
+### Performance Tips
+
+- For large files (>10MB), increase the timeout in `.env`
+- Use SSD storage for better I/O performance
+- Disable unnecessary background services on CPU-only systems
+- Monitor memory usage during processing
 
 ---
 
