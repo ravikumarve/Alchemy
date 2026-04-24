@@ -83,7 +83,7 @@ class Package(Base):
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
 
     # Package metadata
-    metadata = Column(JSON, nullable=True)
+    package_metadata = Column(JSON, nullable=True)
 
     # Content and tables
     content = Column(JSON, nullable=True)
@@ -127,8 +127,8 @@ class ExtractedContent(Base):
     length = Column(Integer, default=0)
     word_count = Column(Integer, default=0)
 
-    # Metadata
-    metadata = Column(JSON, nullable=True)
+    # Chunk metadata
+    chunk_metadata = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -163,8 +163,8 @@ class ExtractedTable(Base):
     is_valid = Column(Boolean, default=True)
     validation_errors = Column(JSON, nullable=True)
 
-    # Metadata
-    metadata = Column(JSON, nullable=True)
+    # Table metadata
+    table_metadata = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
