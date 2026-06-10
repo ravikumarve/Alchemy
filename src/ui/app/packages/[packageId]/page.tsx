@@ -1,10 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Package, FileText, Table, CheckCircle, XCircle, Clock } from 'lucide-react'
+
+// Lazy load heavy components for better performance
+const LazyContentChunk = lazy(() => import('./components/ContentChunk'))
+const LazyTableView = lazy(() => import('./components/TableView'))
 
 interface PackageData {
   package_id: string
@@ -199,36 +203,37 @@ export default function PackageDetail() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {packageData.content.slice(0, 5).map((chunk, index) => (
-                <div key={index} className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{chunk.chunk_id}</span>
-                    <div className="flex items-center space-x-2 text-xs">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md">
-                        {chunk.content_type}
-                      </span>
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-md">
-                        {chunk.quality_level}
-                      </span>
+            <Suspense fallback={<div className="text-center py-4">Loading content chunks...</div>}>              <div className="space-y-4">
+                {packageData.content.slice(0, 5).map((chunk, index) => (
+                  <div key={index} className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">{chunk.chunk_id}</span>
+                      <div className="flex items-center space-x-2 text-xs">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md">
+                          {chunk.content_type}
+                        </span>
+                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-md">
+                          {chunk.quality_level}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-3">
+                      {chunk.text}
+                    </p>
+                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                      <span>Evergreen: {chunk.evergreen_score.toFixed(2)}</span>
+                      <span>Confidence: {chunk.confidence_score.toFixed(2)}</span>
+                      <span>Length: {chunk.length} chars</span>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-3">
-                    {chunk.text}
-                  </p>
-                  <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                    <span>Evergreen: {chunk.evergreen_score.toFixed(2)}</span>
-                    <span>Confidence: {chunk.confidence_score.toFixed(2)}</span>
-                    <span>Length: {chunk.length} chars</span>
+                ))}
+                {packageData.content.length > 5 && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    And {packageData.content.length - 5} more chunks...
                   </div>
-                </div>
-              ))}
-              {packageData.content.length > 5 && (
-                <div className="text-center text-sm text-muted-foreground">
-                  And {packageData.content.length - 5} more chunks...
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </Suspense>
           </CardContent>
         </Card>
 
@@ -242,42 +247,12 @@ export default function PackageDetail() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {packageData.tables.map((table, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">{table.table_id}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {table.format} • {table.row_count} rows × {table.col_count} cols
-                      </span>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b">
-                            {table.headers.map((header: string, i: number) => (
-                              <th key={i} className="py-2 px-3 text-left font-medium">
-                                {header}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {table.data.slice(0, 3).map((row: any, i: number) => (
-                            <tr key={i} className="border-b">
-                              {table.headers.map((header: string, j: number) => (
-                                <td key={j} className="py-2 px-3">
-                                  {row[header]}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Suspense fallback={<div className="text-center py-4">Loading tables...</div>}>                <div className="space-y-4">
+                  {packageData.tables.map((table, index) => (
+                    <LazyTableView key={index} table={table} />
+                  ))}
+                </div>
+              </Suspense>
             </CardContent>
           </Card>
         )}

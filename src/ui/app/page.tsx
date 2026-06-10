@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Upload, FileText, Package, Activity, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Upload, FileText, Package, Activity, Clock, CheckCircle, XCircle, AlertCircle, WifiOff } from 'lucide-react'
+import { useServiceWorker } from '@/lib/serviceWorker'
 
 interface Job {
   job_id: string
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const { swStatus, isOnline } = useServiceWorker()
 
   useEffect(() => {
     fetchJobs()
@@ -146,6 +148,24 @@ export default function Dashboard() {
           <p className="text-slate-600 dark:text-slate-400">
             Temporal Content Transmuter - Monitor your content processing pipeline
           </p>
+          {/* Service Worker Status */}
+          <div className="mt-4 flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              {isOnline ? (
+                <WifiOff className="h-4 w-4 text-green-500" />
+              ) : (
+                <WifiOff className="h-4 w-4 text-red-500" />
+              )}
+              <span className={`text-sm ${isOnline ? 'text-green-600' : 'text-red-600'}`}>              {isOnline ? 'Online' : 'Offline'}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Activity className="h-4 w-4 text-blue-500" />
+              <span className="text-sm text-blue-600">
+                Service Worker: {swStatus === 'installed' ? 'Active' : swStatus === 'installing' ? 'Installing' : swStatus === 'failed' ? 'Failed' : 'Not installed'}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Stats Cards */}

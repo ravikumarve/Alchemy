@@ -1,0 +1,185 @@
+{
+  "info": {
+    "_postman_id": "alchemy-api-collection",
+    "name": "ALCHEMY API",
+    "description": "API collection for ALCHEMY content processing system",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Process File",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "multipart/form-data"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "value": "",
+              "type": "file"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/process",
+          "host": ["{{baseUrl}}"],
+          "path": ["process"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Job Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/jobs/{{jobId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["jobs", "{{jobId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Jobs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/jobs?status={{status}}&limit={{limit}}&offset={{offset}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["jobs"],
+          "query": [
+            {
+              "key": "status",
+              "value": "{{status}}",
+              "disabled": true
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}",
+              "disabled": true
+            },
+            {
+              "key": "offset",
+              "value": "{{offset}}",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Package",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/packages/{{packageId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["packages", "{{packageId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Packages",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/packages?source_agent={{sourceAgent}}&target_agent={{targetAgent}}&limit={{limit}}&offset={{offset}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["packages"],
+          "query": [
+            {
+              "key": "source_agent",
+              "value": "{{sourceAgent}}",
+              "disabled": true
+            },
+            {
+              "key": "target_agent",
+              "value": "{{targetAgent}}",
+              "disabled": true
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}",
+              "disabled": true
+            },
+            {
+              "key": "offset",
+              "value": "{{offset}}",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "job123",
+      "type": "string"
+    },
+    {
+      "key": "packageId",
+      "value": "pkg123",
+      "type": "string"
+    },
+    {
+      "key": "status",
+      "value": "completed",
+      "type": "string"
+    },
+    {
+      "key": "sourceAgent",
+      "value": "archaeologist",
+      "type": "string"
+    },
+    {
+      "key": "targetAgent",
+      "value": "trend_jacker",
+      "type": "string"
+    },
+    {
+      "key": "limit",
+      "value": "50",
+      "type": "string"
+    },
+    {
+      "key": "offset",
+      "value": "0",
+      "type": "string"
+    }
+  ]
+}
