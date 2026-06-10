@@ -156,8 +156,9 @@ def update_step_timing(state: ArchaeologistState, step_name: str) -> Archaeologi
     Returns:
         Updated state with timing information
     """
-    if state.step_start_time:
-        step_start = datetime.fromisoformat(state.step_start_time)
+    step_start_time = state.get('step_start_time')
+    if step_start_time:
+        step_start = datetime.fromisoformat(step_start_time)
         step_end = datetime.utcnow()
         step_duration = (step_end - step_start).total_seconds()
 

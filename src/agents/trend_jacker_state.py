@@ -151,7 +151,7 @@ def create_initial_state(input_package: Dict[str, Any], job_id: str) -> TrendJac
 
         # Package analysis
         package_analysis=None,
-        content_chunks=input_package.get('content_chunks', []),
+        content_chunks = input_package.get('content_chunks') or input_package.get('content', []),
         source_file=input_package.get('metadata', {}).get('source_file', 'unknown'),
         content_themes=[],
         evergreen_score=0.0,

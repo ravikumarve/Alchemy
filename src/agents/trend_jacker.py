@@ -234,11 +234,18 @@ class TrendJackerAgent:
             if not state.get('data_pack'):
                 raise ValueError("No data pack received")
 
-            # Extract content chunks
-            state['content_chunks'] = state.get('data_pack', {}).get('content_chunks', [])
+            # Extract content chunks (handle both 'content' and 'content_chunks' keys)
+            data_pack = state.get('data_pack', {})
+            state['content_chunks'] = data_pack.get('content_chunks') or data_pack.get('content', [])
+            if not state['content_chunks']:
+                # Also check input_package directly
+                input_pkg = state.get('input_package', {})
+                state['content_chunks'] = input_pkg.get('content_chunks') or input_pkg.get('content', [])
 
             # Extract source file
-            state['source_file'] = state.get('data_pack', {}).get('metadata', {}).get('source_file', 'unknown')
+            state['source_file'] = data_pack.get('metadata', {}).get('source_file', 'unknown')
+            if state['source_file'] == 'unknown':
+                state['source_file'] = input_pkg.get('metadata', {}).get('source_file', 'unknown')
 
             # Update state
             state['current_step'] = "receive_data_pack"
