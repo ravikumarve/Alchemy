@@ -189,12 +189,9 @@ def calculate_evergreen_score(content: str, outdated_keywords: List[str]) -> flo
         if keyword.lower() in content_lower:
             outdated_count += 1
 
-    # Calculate score: fewer outdated indicators = higher evergreen score
-    if len(outdated_keywords) == 0:
-        return 1.0
-
-    evergreen_score = 1.0 - (outdated_count / len(outdated_keywords))
-    return max(0.0, min(1.0, evergreen_score))
+    # Calculate score: each outdated keyword match drops the score
+    # Using 1/(1+n) so even 1 match gives score <= 0.5
+    return 1.0 / (1.0 + outdated_count)
 
 
 def assess_quality(

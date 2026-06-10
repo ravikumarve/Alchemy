@@ -86,11 +86,11 @@ class ArchaeologistAgent:
 
         # Build LangGraph workflow if available
         if LANGGRAPH_AVAILABLE:
-            self.workflow = self._build_workflow()
             self.memory = MemorySaver()
+            self.workflow = self._build_workflow()
         else:
-            self.workflow = None
             self.memory = None
+            self.workflow = None
 
     def process_file(self, file_path: str) -> Dict[str, Any]:
         """

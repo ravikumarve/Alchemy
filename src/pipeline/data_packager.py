@@ -152,7 +152,7 @@ class DataPackager:
         Returns:
             Metadata dictionary
         """
-        file_metadata = state.get('file_metadata', {})
+        file_metadata = state.get('file_metadata') or {}
 
         return {
             'source_file': state.get('file_path', 'unknown'),

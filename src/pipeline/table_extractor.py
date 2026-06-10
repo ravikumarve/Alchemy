@@ -196,8 +196,10 @@ class TableExtractor:
             if not headers or not data_rows:
                 return None
 
+            md_table_id = hash('|'.join(headers)) % (2**31)
+
             return {
-                'table_id': f"table_{len(tables) + 1}",
+                'table_id': f"table_{md_table_id}",
                 'format': 'markdown',
                 'headers': headers,
                 'rows': data_rows,
@@ -377,8 +379,10 @@ class TableExtractor:
             if not headers or not data_rows:
                 return None
 
+            csv_table_id = hash('|'.join(headers)) % (2**31)
+
             return {
-                'table_id': f"table_{len(tables) + 1}",
+                'table_id': f"table_{csv_table_id}",
                 'format': 'csv',
                 'headers': headers,
                 'rows': data_rows,

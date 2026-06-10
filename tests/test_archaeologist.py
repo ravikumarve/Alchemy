@@ -135,8 +135,16 @@ class TestTextExtractor:
         """Test extraction with unsupported format."""
         extractor = TextExtractor()
 
-        with pytest.raises(ValueError, match="Unsupported file format"):
-            extractor.extract("/path/to/file.xyz")
+        # Create a temp file with unsupported extension so FileNotFoundError is not raised first
+        with tempfile.NamedTemporaryFile(suffix='.xyz', delete=False, mode='w') as f:
+            f.write("test content")
+            temp_path = f.name
+
+        try:
+            with pytest.raises(ValueError, match="Unsupported file format"):
+                extractor.extract(temp_path)
+        finally:
+            os.unlink(temp_path)
 
     def test_extract_nonexistent_file(self):
         """Test extraction with nonexistent file."""
