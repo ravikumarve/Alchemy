@@ -107,10 +107,14 @@ class NarrativeStructurer:
             # Calculate coherence score
             coherence_score = self._calculate_coherence_score(organized_content, content_flow)
 
+            flow_score = min(1.0, coherence_score + 0.1)
+
             narrative_structure = {
                 'structure_type': best_structure,
+                'structure': {'type': best_structure},
                 'sections': organized_content,
                 'coherence_score': coherence_score,
+                'flow_score': flow_score,
                 'total_sections': len(organized_content),
                 'estimated_duration': self._estimate_duration(organized_content)
             }
@@ -201,6 +205,9 @@ class NarrativeStructurer:
             if section_chunks:
                 organized.append({
                     'section_name': section_name,
+                    'name': section_name,
+                    'start': i * chunks_per_section,
+                    'end': (i + 1) * chunks_per_section,
                     'chunks': section_chunks,
                     'chunk_count': len(section_chunks),
                     'total_length': sum(len(chunk.get('text', '')) for chunk in section_chunks),

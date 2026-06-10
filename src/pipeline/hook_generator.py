@@ -149,8 +149,8 @@ class HookGenerator:
                 )
 
             result = {
-                'hooks': hooks,  # Changed from 'generated_hooks' to 'hooks' for consistency
-                'generated_hooks': hooks,  # Keep for backward compatibility
+                'hooks': all_hooks,
+                'generated_hooks': all_hooks,  # Keep for backward compatibility
                 'selected_hooks': selected_hooks,
                 'hook_variations': hook_variations,
                 'generation_time': generation_time

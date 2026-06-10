@@ -360,8 +360,8 @@ class TrendJackerAgent:
             # Structure narrative
             narrative_result = self.narrative_structurer.structure(
                 state['content_chunks'],
-                state['trend_mappings'],
-                state['hooks']
+                state['hooks'],
+                state['trend_mappings']
             )
 
             # Update state

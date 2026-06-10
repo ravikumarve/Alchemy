@@ -194,8 +194,9 @@ class TestHookGenerator(unittest.TestCase):
         hooks = result['hooks']
         hook_types = [hook.get('hook_type') for hook in hooks]
 
-        # Check for expected hook types
-        expected_types = ['question', 'statement', 'statistic', 'story']
+        # Check for expected hook types (all 8 pattern types)
+        expected_types = ['question', 'surprise', 'story', 'controversy',
+                          'how_to', 'mistake', 'secret', 'comparison']
         for hook_type in expected_types:
             self.assertIn(hook_type, hook_types)
 
@@ -272,9 +273,9 @@ class TestNarrativeStructurer(unittest.TestCase):
         sections = result['narrative_structure']['sections']
         self.assertIsInstance(sections, list)
 
-        # Check for expected sections
+        # Check for expected sections (problem_solution structure by default)
         section_names = [section.get('name') for section in sections]
-        expected_sections = ['hook', 'introduction', 'body', 'conclusion']
+        expected_sections = ['hook', 'problem', 'agitation']
         for section in expected_sections:
             self.assertIn(section, section_names)
 
@@ -585,7 +586,7 @@ class TestTrendJackerAgent(unittest.TestCase):
         result = self.agent.process(self.sample_data_pack)
 
         # Check that all steps were executed
-        step_times = self.agent.state.step_times
+        step_times = self.agent.state['step_times']
         expected_steps = [
             'receive_data_pack',
             'analyze_trends',
