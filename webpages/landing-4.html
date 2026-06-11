@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALCHEMY | Temporal Content Transmuter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#030305',
+                        gold: '#FFD700',
+                        aether: '#00E5FF',
+                        elixir: '#FF00FF',
+                        darkGlass: 'rgba(15, 15, 20, 0.4)',
+                    },
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #030305;
+            color: #ffffff;
+            cursor: none;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Lusion-Inspired Fluid Orbs */
+        .fluid-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -2;
+            overflow: hidden;
+            background: #030305;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            mix-blend-mode: screen;
+            will-change: transform;
+        }
+
+        #orb-gold { width: 50vw; height: 50vw; background: rgba(255, 215, 0, 0.15); top: -10%; left: -10%; }
+        #orb-aether { width: 40vw; height: 40vw; background: rgba(0, 229, 255, 0.12); bottom: -10%; right: -5%; }
+        #orb-elixir { width: 45vw; height: 45vw; background: rgba(255, 0, 255, 0.1); top: 30%; left: 30%; }
+
+        /* Grain Overlay */
+        .grain {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Custom Cursor */
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px #FFD700;
+        }
+
+        .cursor-ring {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        a:hover ~ .cursor-ring, button:hover ~ .cursor-ring, .interactive:hover ~ .cursor-ring {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 215, 0, 0.05);
+            border-color: #FFD700;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Glassmorphism Components */
+        .glass-panel {
+            background: var(--darkGlass);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.5s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 215, 0, 0.3);
+            transform: translateY(-10px);
+        }
+
+        /* Typography & Utilities */
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .citation {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.3);
+            vertical-align: super;
+            margin-left: 2px;
+            letter-spacing: normal;
+            text-transform: none;
+        }
+
+        .tech-line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
+            height: 1px;
+            width: 100%;
+            opacity: 0.3;
+        }
+
+        /* Code Block Styling */
+        .terminal-window {
+            background: #0d1117;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        .terminal-header {
+            background: #161b22;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-b: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="selection:bg-gold selection:text-black">
+
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-ring" id="cursor-ring"></div>
+
+    <div class="fluid-container">
+        <div class="orb" id="orb-gold"></div>
+        <div class="orb" id="orb-aether"></div>
+        <div class="orb" id="orb-elixir"></div>
+    </div>
+    <div class="grain"></div>
+
+    <nav class="fixed w-full z-50 px-8 py-8 mix-blend-difference">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 interactive">
+                <div class="w-8 h-8 rounded-full border border-gold flex items-center justify-center text-gold font-bold text-sm">A</div>
+                <span class="text-xl font-bold tracking-widest uppercase">ALCHEMY</span>
+            </div>
+            <div class="hidden md:flex gap-12 font-mono text-[10px] tracking-[0.2em] uppercase text-white/50">
+                <a href="#agents" class="hover:text-white transition-colors interactive">The Pipeline</a>
+                <a href="#engine" class="hover:text-white transition-colors interactive">Architecture</a>
+                <a href="#deployment" class="hover:text-white transition-colors interactive">Deployment</a>
+            </div>
+            <div>
+                <a href="https://github.com/ravikumarve/Alchemy" class="font-mono text-[10px] tracking-[0.2em] uppercase border border-white/20 px-6 py-3 rounded-full hover:bg-white hover:text-black transition-all interactive">
+                    View Source <span class="citation"></span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="relative min-h-screen flex flex-col justify-center px-8 z-10">
+        <div class="max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-12 items-center pt-20">
+            <div class="lg:col-span-8 relative">
+                <div class="tech-line top-0 left-0"></div>
+                <div class="inline-flex items-center gap-3 px-4 py-2 border border-gold/30 bg-gold/5 rounded-full mb-8 text-[10px] font-mono text-gold uppercase tracking-[0.2em] interactive">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gold animate-pulse"></span>
+                    Temporal Content Transmuter <span class="citation"></span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl lg:text-[6rem] font-bold tracking-tighter leading-[1.05] mb-8">
+                    LEGACY CONTENT.<br />
+                    <span class="text-gradient-gold">DIGITAL GOLD.</span>
+                </h1>
+                
+                <p class="text-lg md:text-xl font-light text-white/60 max-w-2xl leading-relaxed mb-12">
+                    An autonomous multi-agent pipeline converting legacy content (PDFs, archives, public domain texts) into modern digital assets prepped for direct Gumroad deployment <span class="citation"></span>.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-6 font-mono text-xs tracking-widest uppercase">
+                    <a href="#agents" class="bg-white text-black px-8 py-4 rounded-full text-center hover:scale-105 transition-transform interactive">
+                        Initialize Pipeline
+                    </a>
+                    <div class="flex items-center gap-4 text-white/40">
+                        <span class="w-8 h-px bg-white/20"></span>
+                        CPU-Only Optimized <span class="citation"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-4 hidden lg:block">
+                <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-[10px] font-mono text-white/20">STATUS_LOG</div>
+                    <div class="space-y-6 font-mono text-xs text-white/60">
+                        <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                            <span>System Status</span>
+                            <span class="text-gold">Production Ready <span class="citation"></span></span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                            <span>Processing Time</span>
+                            <span class="text-aether">60-Second Engine <span class="citation"></span></span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                            <span>Hardware Target</span>
+                            <span class="text-white/80">Dell Latitude 3460 <span class="citation"></span></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Maintenance</span>
+                            <span class="text-elixir">Zero-Touch <span class="citation"></span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="agents" class="py-32 px-8 relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-20 flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-8 gap-8">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold tracking-tighter mb-4">Multi-Agent Architecture <span class="citation"></span></h2>
+                    <p class="font-mono text-xs text-gold tracking-[0.2em] uppercase">Three specialized cognitive entities <span class="citation"></span>.</p>
+                </div>
+                <div class="text-right font-mono text-[10px] text-white/40 uppercase tracking-widest max-w-xs">
+                    Coordinated via LangGraph orchestration and unstructured.io integration <span class="citation"></span>.
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="glass-panel p-10 rounded-3xl interactive group">
+                    <div class="flex justify-between items-start mb-12">
+                        <div class="w-12 h-12 rounded-full border border-gold/30 bg-gold/10 flex items-center justify-center text-gold text-xl">⛏️</div>
+                        <span class="font-mono text-[10px] text-gold uppercase tracking-widest px-3 py-1 rounded-full border border-gold/20">Phase 4: Complete <span class="citation"></span></span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Archaeologist</h3>
+                    <p class="font-mono text-[10px] text-white/40 tracking-[0.2em] uppercase mb-6">The Data Miner <span class="citation"></span></p>
+                    <p class="text-white/60 font-light leading-relaxed mb-8">
+                        Extracts evergreen data from legacy documents while intelligently filtering outdated context utilizing SemanticChunker and TableExtractor <span class="citation"></span>.
+                    </p>
+                    <div class="space-y-3 font-mono text-[10px] text-white/50">
+                        <div class="flex justify-between"><span class="text-gold">01</span><span>File Validation</span><span>(5s) <span class="citation"></span></span></div>
+                        <div class="flex justify-between"><span class="text-gold">03</span><span>Semantic Analysis</span><span>(30s) <span class="citation"></span></span></div>
+                        <div class="flex justify-between"><span class="text-gold">07</span><span>Package Generation</span><span>(3s) <span class="citation"></span></span></div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-10 rounded-3xl interactive group">
+                    <div class="flex justify-between items-start mb-12">
+                        <div class="w-12 h-12 rounded-full border border-aether/30 bg-aether/10 flex items-center justify-center text-aether text-xl">🌊</div>
+                        <span class="font-mono text-[10px] text-aether uppercase tracking-widest px-3 py-1 rounded-full border border-aether/20">Phase 4: Complete <span class="citation"></span></span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Trend-Jacker</h3>
+                    <p class="font-mono text-[10px] text-white/40 tracking-[0.2em] uppercase mb-6">The Contextualizer <span class="citation"></span></p>
+                    <p class="text-white/60 font-light leading-relaxed mb-8">
+                        Maps evergreen content to modern trends, structures narrative, and generates attention-grabbing hooks using HookLibrary and AttentionMetrics <span class="citation"></span>.
+                    </p>
+                    <div class="space-y-3 font-mono text-[10px] text-white/50">
+                        <div class="flex justify-between"><span class="text-aether">02</span><span>Analyze Trends</span><span>(15s) <span class="citation"></span></span></div>
+                        <div class="flex justify-between"><span class="text-aether">03</span><span>Generate Hooks</span><span>(20s) <span class="citation"></span></span></div>
+                        <div class="flex justify-between"><span class="text-aether">05</span><span>Optimize Attention</span><span>(10s) <span class="citation"></span></span></div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-10 rounded-3xl interactive group">
+                    <div class="flex justify-between items-start mb-12">
+                        <div class="w-12 h-12 rounded-full border border-elixir/30 bg-elixir/10 flex items-center justify-center text-elixir text-xl">👁️</div>
+                        <span class="font-mono text-[10px] text-elixir uppercase tracking-widest px-3 py-1 rounded-full border border-elixir/20">Phase 4: Pending <span class="citation"></span></span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Visionary</h3>
+                    <p class="font-mono text-[10px] text-white/40 tracking-[0.2em] uppercase mb-6">The Media Architect <span class="citation"></span></p>
+                    <p class="text-white/60 font-light leading-relaxed mb-8">
+                        Analyzes content for visual opportunities, generates B-roll prompts, and creates visual storyboards for final asset production <span class="citation"></span>.
+                    </p>
+                    <div class="space-y-3 font-mono text-[10px] text-white/50">
+                        <div class="flex justify-between"><span class="text-elixir">01</span><span>Visual Analysis</span><span><span class="citation"></span></span></div>
+                        <div class="flex justify-between"><span class="text-elixir">02</span><span>B-Roll Generation</span><span><span class="citation"></span></span></div>
+                        <div class="flex justify-between"><span class="text-elixir">04</span><span>Asset Packaging</span><span><span class="citation"></span></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="engine" class="py-32 px-8 relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-20 items-center">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold tracking-tighter mb-8">Production-Ready Core.</h2>
+                    <p class="text-lg font-light text-white/60 mb-12 leading-relaxed">
+                        Built for unattended operation, ALCHEMY runs as a cron job or background daemon <span class="citation"></span>. It processes documents through 8 REST endpoints backed by a robust FastAPI and SQLite architecture <span class="citation"></span>.
+                    </p>
+                    
+                    <div class="space-y-6 font-mono text-sm">
+                        <div class="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                            <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-gold">01</div>
+                            <div>
+                                <div class="text-white">Backend Infrastructure <span class="citation"></span></div>
+                                <div class="text-[10px] text-white/40 uppercase tracking-widest mt-1">FastAPI, SQLite, Celery, Redis <span class="citation"></span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                            <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-aether">02</div>
+                            <div>
+                                <div class="text-white">Frontend Dashboard <span class="citation"></span></div>
+                                <div class="text-[10px] text-white/40 uppercase tracking-widest mt-1">Next.js 14+, App Router, shadcn/ui <span class="citation"></span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                            <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center text-elixir">03</div>
+                            <div>
+                                <div class="text-white">Observability <span class="citation"></span></div>
+                                <div class="text-[10px] text-white/40 uppercase tracking-widest mt-1">Prometheus Metrics, Grafana Dashboards <span class="citation"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terminal-window interactive">
+                    <div class="terminal-header">
+                        <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                        <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                        <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+                        <span class="ml-2 font-mono text-[10px] text-white/40 uppercase tracking-widest">pipeline_execution.py <span class="citation"></span></span>
+                    </div>
+                    <div class="p-8 font-mono text-xs md:text-sm leading-loose overflow-x-auto text-white/80">
+                        <span class="text-[#ff7b72]">from</span> src.agents.archaeologist <span class="text-[#ff7b72]">import</span> ArchaeologistAgent<br>
+                        <span class="text-[#ff7b72]">from</span> src.agents.trend_jacker <span class="text-[#ff7b72]">import</span> TrendJackerAgent<br><br>
+                        
+                        <span class="text-[#79c0ff]"># Initialize agents</span> <span class="citation"></span><br>
+                        archaeologist = ArchaeologistAgent()<br>
+                        trend_jacker = TrendJackerAgent()<br><br>
+
+                        <span class="text-[#79c0ff]"># Process a file with Archaeologist</span> <span class="citation"></span><br>
+                        arch_result = archaeologist.process_file(<span class="text-[#a5d6ff]">"raw_ore/document.pdf"</span>)<br><br>
+                        
+                        <span class="text-[#ff7b72]">if</span> arch_result[<span class="text-[#a5d6ff]">'success'</span>]:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#79c0ff]"># Process with Trend-Jacker</span> <span class="citation"></span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;tj_result = trend_jacker.process(arch_result[<span class="text-[#a5d6ff]">'package'</span>])<br><br>
+                        
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#ff7b72]">if</span> tj_result[<span class="text-[#a5d6ff]">'status'</span>] == <span class="text-[#a5d6ff]">'completed'</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#d2a8ff]">print</span>(<span class="text-[#a5d6ff]">f"✓ Completed in {tj_result['total_time']:.2f}s"</span>)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="deployment" class="py-12 px-8 border-t border-white/5 relative z-10 bg-void">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-bold tracking-widest uppercase text-white/80">ALCHEMY</span>
+            </div>
+            
+            <div class="font-mono text-[10px] text-white/40 uppercase tracking-[0.2em] text-center">
+                Built with ❤️ for solo indie developers <span class="citation"></span><br />
+                Licensed under the MIT License <span class="citation"></span>
+            </div>
+            
+            <div class="flex gap-8 font-mono text-[10px] uppercase tracking-widest text-white/40">
+                <a href="https://github.com/ravikumarve/Alchemy" class="hover:text-gold transition-colors interactive">Source Code</a>
+                <a href="#" class="hover:text-gold transition-colors interactive">Documentation</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cursorDot = document.getElementById('cursor-dot');
+            const cursorRing = document.getElementById('cursor-ring');
+            const orbGold = document.getElementById('orb-gold');
+            const orbAether = document.getElementById('orb-aether');
+            const orbElixir = document.getElementById('orb-elixir');
+
+            // Variables for smooth interpolation (Lerp)
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+            let ringX = mouseX;
+            let ringY = mouseY;
+            let orbGoldX = 0, orbGoldY = 0;
+            let orbAetherX = 0, orbAetherY = 0;
+            let orbElixirX = 0, orbElixirY = 0;
+
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                // Immediate dot update
+                cursorDot.style.left = `${mouseX}px`;
+                cursorDot.style.top = `${mouseY}px`;
+            });
+
+            // Interactive hover states for cursor
+            const interactives = document.querySelectorAll('a, button, .interactive');
+            interactives.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursorDot.style.transform = 'translate(-50%, -50%) scale(0)';
+                });
+                el.addEventListener('mouseleave', () => {
+                    cursorDot.style.transform = 'translate(-50%, -50%) scale(1)';
+                });
+            });
+
+            // Animation Loop
+            const render = () => {
+                // Lerp for cursor ring (smooth trailing effect)
+                ringX += (mouseX - ringX) * 0.15;
+                ringY += (mouseY - ringY) * 0.15;
+                cursorRing.style.left = `${ringX}px`;
+                cursorRing.style.top = `${ringY}px`;
+
+                // Lerp for ambient orbs (parallax effect based on mouse position)
+                const winCenterX = window.innerWidth / 2;
+                const winCenterY = window.innerHeight / 2;
+                
+                // Calculate offset from center
+                const offsetX = (mouseX - winCenterX) / winCenterX;
+                const offsetY = (mouseY - winCenterY) / winCenterY;
+
+                // Move orbs inversely and at different speeds
+                orbGoldX += ((offsetX * -100) - orbGoldX) * 0.05;
+                orbGoldY += ((offsetY * -100) - orbGoldY) * 0.05;
+                
+                orbAetherX += ((offsetX * 80) - orbAetherX) * 0.04;
+                orbAetherY += ((offsetY * 80) - orbAetherY) * 0.04;
+
+                orbElixirX += ((offsetX * -60) - orbElixirX) * 0.03;
+                orbElixirY += ((offsetY * 60) - orbElixirY) * 0.03;
+
+                orbGold.style.transform = `translate(${orbGoldX}px, ${orbGoldY}px)`;
+                orbAether.style.transform = `translate(${orbAetherX}px, ${orbAetherY}px)`;
+                orbElixir.style.transform = `translate(${orbElixirX}px, ${orbElixirY}px)`;
+
+                requestAnimationFrame(render);
+            };
+
+            render();
+        });
+    </script>
+</body>
+</html>

@@ -133,6 +133,12 @@ class ArchaeologistAgent:
             processing_time = time.time() - start_time
 
             # Prepare result
+            # Override success flag if critical errors occurred
+            has_errors = len(final_state.get('extraction_errors', [])) > 0
+            has_content = bool(final_state.get('raw_text'))
+            if has_errors and not has_content:
+                final_state['status'] = ProcessingStatus.FAILED
+
             result = {
                 'success': final_state.get('status') == ProcessingStatus.COMPLETED,
                 'package': final_state.get('output_package'),

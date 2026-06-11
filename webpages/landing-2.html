@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALCHEMY | Temporal Content Transmuter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#030304',
+                        gold: {
+                            DEFAULT: '#FFD700',
+                            dim: '#B8860B',
+                            dark: '#8B6508'
+                        },
+                        aether: '#8A2BE2', // Deep purple
+                    },
+                    fontFamily: {
+                        mystic: ['Cinzel', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'float': 'float 8s ease-in-out infinite',
+                        'spin-slow': 'spin 20s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #030304;
+            color: #f3f4f6;
+            cursor: none;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Lusion-Inspired Fluid Cursor */
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px #FFD700;
+            transition: width 0.2s, height 0.2s;
+        }
+
+        .cursor-trail {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s;
+            mix-blend-mode: screen;
+        }
+
+        a:hover ~ .cursor-trail, button:hover ~ .cursor-trail {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(255, 215, 0, 0.05);
+            border-color: #FFD700;
+        }
+
+        /* Ambient Liquid Gold Background */
+        .ambient-fluid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -2;
+            filter: blur(90px);
+            opacity: 0.6;
+        }
+
+        .fluid-orb {
+            position: absolute;
+            border-radius: 50%;
+            transition: transform 1.5s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+
+        /* Grain & Vignette */
+        .cinematic-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(20, 20, 25, 0.6) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.05);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 215, 0, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(255, 215, 0, 0.05);
+        }
+
+        .text-gradient-gold {
+            background: linear-gradient(to right, #FFD700, #FFF8DC, #B8860B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .citation {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: #6b7280;
+            vertical-align: super;
+            margin-left: 4px;
+        }
+
+        /* Nav lines */
+        .nav-line {
+            position: relative;
+        }
+        .nav-line::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -4px;
+            left: 0;
+            background-color: #FFD700;
+            transition: width 0.3s ease;
+        }
+        .nav-line:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="selection:bg-gold selection:text-black">
+
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-trail" id="cursor-trail"></div>
+
+    <div class="ambient-fluid">
+        <div id="orb-gold" class="fluid-orb w-[600px] h-[600px] bg-gold/20 top-[-10%] left-[-10%] mix-blend-screen"></div>
+        <div id="orb-aether" class="fluid-orb w-[700px] h-[700px] bg-aether/10 bottom-[-20%] right-[-10%] mix-blend-screen"></div>
+    </div>
+    <div class="cinematic-overlay"></div>
+
+    <nav class="fixed w-full z-50 px-8 py-8 mix-blend-difference">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <span class="font-mystic text-2xl font-bold tracking-widest text-gold">ALCHEMY</span>
+            </div>
+            <div class="hidden md:flex gap-12 font-mono text-[10px] tracking-[0.3em] uppercase text-gray-400">
+                <a href="#philosophy" class="nav-line hover:text-white transition-colors">Philosophy</a>
+                <a href="#pipeline" class="nav-line hover:text-white transition-colors">The Pipeline</a>
+                <a href="#dashboard" class="nav-line hover:text-white transition-colors">Dashboard</a>
+            </div>
+            <div>
+                <button class="font-mono text-[10px] uppercase tracking-widest border border-gold/30 px-6 py-3 text-gold hover:bg-gold hover:text-black transition-all duration-300">
+                    Initialize System
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 z-10">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="inline-flex items-center gap-3 px-4 py-1.5 border border-white/10 bg-white/5 rounded-full mb-8 backdrop-blur-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-gold animate-pulse"></span>
+                <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-300">Temporal Content Transmuter <span class="citation"></span></span>
+            </div>
+            
+            <h1 class="font-mystic text-5xl md:text-7xl lg:text-[7rem] font-bold tracking-tight leading-[1.1] mb-8 text-gradient-gold drop-shadow-2xl">
+                DIGITAL GOLD<br />FROM LEGACY ORE.
+            </h1>
+            
+            <p class="font-sans text-lg md:text-xl font-light text-gray-400 max-w-2xl mx-auto leading-relaxed mb-16">
+                An autonomous multi-agent pipeline converting legacy content—PDFs, archives, and public domain texts—into modern digital assets ready for Gumroad deployment <span class="citation"></span>.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-8 justify-center items-center">
+                <a href="#pipeline" class="font-mono text-xs tracking-widest uppercase bg-gold text-black px-10 py-5 hover:bg-yellow-400 transition-colors">
+                    Explore The Agents
+                </a>
+                <a href="https://github.com/ravikumarve/Alchemy" class="font-mono text-xs tracking-widest uppercase text-white hover:text-gold transition-colors flex items-center gap-2">
+                    View Manifest <span class="citation"></span>
+                </a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 flex flex-col items-center gap-4 opacity-50">
+            <div class="w-px h-16 bg-gradient-to-b from-gold to-transparent"></div>
+        </div>
+    </header>
+
+    <section id="philosophy" class="py-32 px-6 relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-20 items-center">
+                <div>
+                    <h2 class="font-mystic text-4xl mb-8">The Alchemy Protocol.</h2>
+                    <p class="text-gray-400 font-light leading-relaxed mb-8 text-lg">
+                        ALCHEMY is a production-ready content transmutation system that extracts evergreen data from legacy documents while intelligently filtering outdated context <span class="citation"></span>.
+                    </p>
+                    <ul class="space-y-6 font-mono text-xs tracking-wide text-gray-300">
+                        <li class="flex items-start gap-4">
+                            <span class="text-gold">✦</span>
+                            <span><strong>60-Second Engine:</strong> Perfectly timed content processing for short-form video <span class="citation"></span>.</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="text-gold">✦</span>
+                            <span><strong>Zero-Maintenance:</strong> Runs as a cron job or background daemon for unattended operation <span class="citation"></span>.</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="text-gold">✦</span>
+                            <span><strong>CPU-Optimized:</strong> Engineered to run perfectly on hardware like a Dell Latitude 3460 without requiring a GPU <span class="citation"></span>.</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="relative">
+                    <div class="glass-card p-1 border-gold/20 rounded-lg transform rotate-2">
+                        <div class="bg-void p-8 font-mono text-xs leading-loose text-gray-400">
+                            <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
+                                <span class="text-gold tracking-widest">system_log.txt</span>
+                                <span class="text-[9px]">Status: ONLINE</span>
+                            </div>
+                            <p>> Initializing Archaeologist Agent... <span class="citation"></span></p>
+                            <p>> Extracting unstructured data from raw_ore/document.pdf... <span class="citation"></span></p>
+                            <p>> Semantic Analysis: <span class="text-green-400">Evergreen content identified.</span> <span class="citation"></span></p>
+                            <p>> Handing off to Trend-Jacker... <span class="citation"></span></p>
+                            <p class="text-gold">> Output: processed_gold/asset.zip ready for deployment. <span class="citation"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pipeline" class="py-32 px-6 relative z-10 border-t border-white/5 bg-black/40">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-24">
+                <span class="font-mono text-[10px] text-gold tracking-[0.4em] uppercase mb-4 block">Multi-Agent Architecture <span class="citation"></span></span>
+                <h2 class="font-mystic text-4xl md:text-5xl">The Cognitive Triad</h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="glass-card p-10 rounded-2xl group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-4xl font-mystic text-white/5">I</div>
+                    <div class="mb-8 font-mono text-[10px] text-gold tracking-widest uppercase border-b border-gold/20 pb-4 inline-block">Data Miner <span class="citation"></span></div>
+                    <h3 class="font-mystic text-2xl font-bold mb-4 text-white">The Archaeologist <span class="citation"></span></h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-8">
+                        Executes a strict 7-step workflow, utilizing SemanticChunker and TableExtractor to mine evergreen truths from unstructured legacy text while filtering out noise <span class="citation"></span>.
+                    </p>
+                    <div class="font-mono text-[9px] text-green-400 uppercase tracking-widest bg-green-400/10 inline-block px-3 py-1 rounded">
+                        Status: Complete <span class="citation"></span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-10 rounded-2xl group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-4xl font-mystic text-white/5">II</div>
+                    <div class="mb-8 font-mono text-[10px] text-gold tracking-widest uppercase border-b border-gold/20 pb-4 inline-block">Contextualizer <span class="citation"></span></div>
+                    <h3 class="font-mystic text-2xl font-bold mb-4 text-white">The Trend-Jacker <span class="citation"></span></h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-8">
+                        Analyzes the excavated data, structures narratives, and utilizes a HookLibrary to optimize content for modern attention and retention metrics <span class="citation"></span>.
+                    </p>
+                    <div class="font-mono text-[9px] text-green-400 uppercase tracking-widest bg-green-400/10 inline-block px-3 py-1 rounded">
+                        Status: Complete <span class="citation"></span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-10 rounded-2xl group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-4xl font-mystic text-white/5">III</div>
+                    <div class="mb-8 font-mono text-[10px] text-gold tracking-widest uppercase border-b border-gold/20 pb-4 inline-block">Media Architect <span class="citation"></span></div>
+                    <h3 class="font-mystic text-2xl font-bold mb-4 text-white">The Visionary <span class="citation"></span></h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-8">
+                        Analyzes contextualized content to generate visual storyboards, B-roll prompts, and packages final media assets for production <span class="citation"></span>.
+                    </p>
+                    <div class="font-mono text-[9px] text-yellow-400 uppercase tracking-widest bg-yellow-400/10 inline-block px-3 py-1 rounded">
+                        Status: Pending <span class="citation"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="dashboard" class="py-32 px-6 relative z-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 items-center">
+            <div class="lg:w-1/2">
+                <h2 class="font-mystic text-4xl mb-6">Command Center.</h2>
+                <p class="text-gray-400 font-light leading-relaxed mb-8">
+                    The ALCHEMY system includes a modern Next.js 14+ dashboard powered by the App Router and beautifully styled with shadcn/ui components <span class="citation"></span>.
+                </p>
+                <div class="space-y-4 font-mono text-sm text-gray-300">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                        Real-time job tracking and status updates <span class="citation"></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                        Package management and detailed views <span class="citation"></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                        System metrics and performance monitoring <span class="citation"></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-1.5 bg-gold rounded-full"></div>
+                        FastAPI Backend with 8 REST endpoints <span class="citation"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lg:w-1/2 w-full">
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="bg-[#0c0c0e] rounded-xl overflow-hidden border border-white/5">
+                        <div class="px-4 py-3 border-b border-white/5 flex items-center gap-2 bg-[#121214]">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
+                            <span class="ml-2 font-mono text-[10px] text-gray-500">npm run dev <span class="citation"></span></span>
+                        </div>
+                        <div class="p-6 font-mono text-xs leading-loose text-gray-400">
+                            <p>▲ Next.js 14.x <span class="citation"></span></p>
+                            <p>- Local:        http://localhost:3000 <span class="citation"></span></p>
+                            <p>- Network:      http://192.168.1.5:3000</p>
+                            <br>
+                            <p class="text-green-400">✓ Compiled / in 1248ms</p>
+                            <p class="text-gray-500">○ Compiling /api/v1/packages...</p>
+                            <p class="text-green-400">✓ Compiled /api/v1/packages in 312ms</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 px-6 border-t border-white/5 bg-void relative z-10">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="font-mystic text-xl font-bold tracking-widest text-gold">ALCHEMY</div>
+            
+            <div class="font-mono text-[10px] text-gray-500 uppercase tracking-widest text-center">
+                Built with ❤️ for solo indie developers <span class="citation"></span>.<br>
+                MIT License <span class="citation"></span>.
+            </div>
+            
+            <div class="flex gap-8 font-mono text-[10px] uppercase tracking-widest text-gray-400">
+                <a href="#" class="hover:text-white transition-colors">Documentation</a>
+                <a href="#" class="hover:text-white transition-colors">GitHub</a>
+                <a href="#" class="hover:text-white transition-colors">System Status</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cursorDot = document.getElementById('cursor-dot');
+            const cursorTrail = document.getElementById('cursor-trail');
+            const orbGold = document.getElementById('orb-gold');
+            const orbAether = document.getElementById('orb-aether');
+
+            // Interactive Cursor Logic
+            window.addEventListener('mousemove', (e) => {
+                const posX = e.clientX;
+                const posY = e.clientY;
+
+                // Immediate dot follow
+                cursorDot.style.left = `${posX}px`;
+                cursorDot.style.top = `${posY}px`;
+
+                // Delayed outline/trail follow
+                cursorTrail.animate({
+                    left: `${posX}px`,
+                    top: `${posY}px`
+                }, { duration: 600, fill: "forwards" });
+
+                // Ambient Orb Parallax (Fluid movement)
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                
+                const moveX = (posX / windowWidth) * 60 - 30;
+                const moveY = (posY / windowHeight) * 60 - 30;
+
+                orbGold.style.transform = `translate(${moveX * -1}px, ${moveY * -1}px) scale(1.05)`;
+                orbAether.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.05)`;
+            });
+
+            // Hover effects for clickable elements
+            const clickables = document.querySelectorAll('a, button');
+            clickables.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursorDot.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                    cursorDot.style.backgroundColor = '#fff';
+                });
+                el.addEventListener('mouseleave', () => {
+                    cursorDot.style.transform = 'translate(-50%, -50%) scale(1)';
+                    cursorDot.style.backgroundColor = '#FFD700';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

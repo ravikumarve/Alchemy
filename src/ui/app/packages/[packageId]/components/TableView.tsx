@@ -1,4 +1,4 @@
-"use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 
@@ -6,7 +6,7 @@ interface TableViewProps {
   table: any
 }
 
-export function TableView({ table }: TableViewProps) {
+export default function TableView({ table }: TableViewProps) {
   return (
     <div className="p-4 border rounded-lg">
       <div className="flex items-center justify-between mb-2">

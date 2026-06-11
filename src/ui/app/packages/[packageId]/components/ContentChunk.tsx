@@ -1,4 +1,4 @@
-"use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 
@@ -6,7 +6,7 @@ interface ContentChunkProps {
   chunk: any
 }
 
-export function ContentChunk({ chunk }: ContentChunkProps) {
+export default function ContentChunk({ chunk }: ContentChunkProps) {
   return (
     <div className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
       <div className="flex items-center justify-between mb-2">

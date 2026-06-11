@@ -1,4 +1,4 @@
-"use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 
@@ -85,7 +85,8 @@ export function useServiceWorker() {
     }
     
     // Check if app is in a web app context
-    if (window.navigator.standalone === true) {
+    const navigatorWithStandalone = window.navigator as Navigator & { standalone?: boolean }
+    if (navigatorWithStandalone && navigatorWithStandalone.standalone === true) {
       return false
     }
     
