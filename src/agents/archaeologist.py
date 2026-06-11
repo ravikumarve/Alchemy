@@ -170,12 +170,12 @@ class ArchaeologistAgent:
                 'errors': [str(e)]
             }
 
-    def _build_workflow(self) -> StateGraph:
+    def _build_workflow(self) -> Any:
         """
         Build LangGraph workflow for Archaeologist agent.
 
         Returns:
-            Configured StateGraph workflow
+            Configured compiled workflow graph
         """
         # Create workflow graph
         workflow = StateGraph(ArchaeologistState)
@@ -326,13 +326,16 @@ class ArchaeologistAgent:
 
             # Update state
             state['raw_text'] = extraction_result['raw_text']
-            state['file_metadata'].update(extraction_result['metadata'])
+            fm = state.get('file_metadata')
+            if fm is not None:
+                fm.update(extraction_result['metadata'])
             state['extraction_errors'].extend(extraction_result.get('errors', []))
 
             # Update timing
             state = update_step_timing(state, step_name)
 
-            logger.info(f"Step 2 completed: Extracted {len(state['raw_text'])} characters")
+            text_len = len(state['raw_text']) if state['raw_text'] else 0
+            logger.info(f"Step 2 completed: Extracted {text_len} characters")
 
             return state
 
@@ -450,10 +453,11 @@ class ArchaeologistAgent:
             )
 
             # Assess overall quality
+            text_len = len(state['raw_text']) if state['raw_text'] else 0
             state['quality_assessment'] = assess_quality(
                 state['evergreen_score'],
                 state['confidence_scores'],
-                len(state['raw_text'])
+                text_len
             )
 
             # Update state

@@ -369,9 +369,11 @@ class TrendJackerAgent:
             state['current_step'] = "structure_narrative"
             state['step_times']['structure_narrative'] = time.time() - step_start
 
+            ns = state['narrative_structure']
+            coherence_score = ns.get('coherence_score', 0) if ns else 0
             logger.info(
                 f"Step 4 completed in {state['step_times']['structure_narrative']:.2f}s: "
-                f"coherence_score={state['narrative_structure'].get('coherence_score', 0):.2f}"
+                f"coherence_score={coherence_score:.2f}"
             )
 
             return state

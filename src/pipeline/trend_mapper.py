@@ -198,7 +198,7 @@ class TrendMapper:
         relevance_scores = {}
 
         # Aggregate connections by trend
-        trend_connections = {}
+        trend_connections: dict[str, list[dict[str, Any]]] = {}
         for connection in connections:
             trend_name = connection['trend_name']
             if trend_name not in trend_connections:
@@ -268,7 +268,7 @@ class TrendMapper:
         mapped_trends = []
 
         # Group by trend name
-        trend_groups = {}
+        trend_groups: dict[str, list[dict[str, Any]]] = {}
         for connection in connections:
             trend_name = connection['trend_name']
             if trend_name not in trend_groups:

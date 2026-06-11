@@ -1,7 +1,7 @@
 # 🌐 ALCHEMY - Temporal Content Transmuter
 
 ## Project State
-**Status:** Phase 4 complete (Archaeologist ✅, Trend-Jacker ✅, Visionary ✅). Ready for Phase 5.
+**Status:** Phase 5 complete — 121 tests passing, mypy clean. Ready for Phase 6 (DevOps & Deployment).
 **Purpose:** Autonomous multi-agent pipeline converting legacy content (PDFs, archives, public domain texts) into modern digital assets for Gumroad deployment.
 
 ## Production-Ready Agent Workflow
@@ -172,6 +172,17 @@ alchemy/
 
 ---
 ## 💾 Session Memory Ledger
+
+### [2026-06-11 14:00] - Phase 5 Complete: Performance Benchmarks & Static Analysis
+**Agent:** codebase
+**Summary:** Completed Phase 5 (Testing & QA) — 121 tests passing, mypy clean across all modules
+- Created `test_performance.py` (12 benchmarks: agent budgets, pipeline timing, memory sanity, consistent timing)
+- Extended API integration tests (7 new tests: upload→process→retrieve, concurrent processing, multi-format support with valid PDF/HTML fixtures)
+- Fixed critical TextExtractor performance bug: `unstructured` library took 6.5s to import, replaced with lightweight PyPDF2/BeautifulSoup as primary extractors
+- Fixed 16 mypy type errors across 9 source files (missing annotations, None guards, TypedDict compatibility)
+- Installed PyPDF2 as PDF extraction dependency
+- **Full suite:** 121/121 passing, all source files mypy-clean
+- **Key achievement:** Pipeline runs end-to-end on sample file in ~1.5s (well under 60s budget)
 
 ### [2026-06-11 01:35] - Phase 7 Sprint: Frontend Performance Optimization and Production Hardening
 **Agent:** codebase

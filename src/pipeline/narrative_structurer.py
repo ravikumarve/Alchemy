@@ -161,7 +161,7 @@ class NarrativeStructurer:
         content_types = [chunk.get('content_type', 'general') for chunk in content_chunks]
 
         # Count content types
-        type_counts = {}
+        type_counts: dict[str, int] = {}
         for content_type in content_types:
             type_counts[content_type] = type_counts.get(content_type, 0) + 1
 

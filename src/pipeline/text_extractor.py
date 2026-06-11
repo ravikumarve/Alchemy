@@ -2,7 +2,8 @@
 Text Extractor Module for Archaeologist Agent
 
 Handles extraction of raw text and metadata from PDF, TXT, and HTML files
-using unstructured.io library. Implements Step 2 of the Archaeologist workflow.
+using lightweight libraries (PyPDF2, BeautifulSoup, built-in reader).
+Implements Step 2 of the Archaeologist workflow.
 
 Time Budget: 2 seconds for extraction
 """
@@ -20,18 +21,18 @@ logger = logging.getLogger(__name__)
 
 class TextExtractor:
     """
-    Extracts text and metadata from various file formats using unstructured.io.
+    Extracts text and metadata from various file formats.
 
     Supported formats:
-    - PDF (.pdf)
-    - Plain Text (.txt)
-    - HTML (.html, .htm)
+    - PDF (.pdf) via PyPDF2
+    - Plain Text (.txt) via built-in reader
+    - HTML (.html, .htm) via BeautifulSoup
 
     Time Budget: 2 seconds per file
     """
 
     def __init__(self):
-        """Initialize TextExtractor with unstructured.io configuration."""
+        """Initialize TextExtractor configuration."""
         self.extraction_timeout = 2.0  # 2 second timeout
         self.supported_formats = ['.pdf', '.txt', '.html', '.htm']
 
@@ -100,7 +101,9 @@ class TextExtractor:
 
     def _extract_pdf(self, file_path: str, start_time: float) -> Dict[str, Any]:
         """
-        Extract text from PDF file using unstructured.io.
+        Extract text from PDF file.
+
+        Uses PyPDF2 for lightweight extraction. Falls back if unavailable.
 
         Args:
             file_path: Path to PDF file
@@ -109,60 +112,10 @@ class TextExtractor:
         Returns:
             Dictionary with extracted text and metadata
         """
-        try:
-            from unstructured.partition.pdf import partition_pdf
+        # Check timeout before extraction
+        if time.time() - start_time > self.extraction_timeout * 0.8:
+            raise TimeoutError("Approaching extraction timeout")
 
-            # Check timeout before extraction
-            if time.time() - start_time > self.extraction_timeout * 0.8:
-                raise TimeoutError("Approaching extraction timeout")
-
-            # Extract text from PDF
-            elements = partition_pdf(
-                file_path,
-                strategy="fast",  # Use fast strategy for CPU-only operation
-                extract_tables_in_pdf=True,
-                infer_table_structure=True
-            )
-
-            # Combine text from all elements
-            raw_text = "\n".join([str(element) for element in elements])
-
-            # Extract metadata
-            metadata = {
-                'file_type': 'pdf',
-                'file_size': os.path.getsize(file_path),
-                'num_elements': len(elements),
-                'extraction_method': 'unstructured.io',
-                'extraction_strategy': 'fast'
-            }
-
-            # Try to get page count if available
-            if hasattr(elements[0], 'metadata') and 'page_number' in elements[0].metadata:
-                page_numbers = [e.metadata.get('page_number', 0) for e in elements if hasattr(e, 'metadata')]
-                if page_numbers:
-                    metadata['num_pages'] = max(page_numbers)
-
-            return {
-                'raw_text': raw_text,
-                'metadata': metadata,
-                'errors': []
-            }
-
-        except ImportError:
-            # Fallback if unstructured.io is not available
-            logger.warning("unstructured.io not available, using fallback extraction")
-            return self._extract_pdf_fallback(file_path)
-
-    def _extract_pdf_fallback(self, file_path: str) -> Dict[str, Any]:
-        """
-        Fallback PDF extraction using basic PDF reading.
-
-        Args:
-            file_path: Path to PDF file
-
-        Returns:
-            Dictionary with extracted text and metadata
-        """
         try:
             import PyPDF2
 
@@ -178,25 +131,25 @@ class TextExtractor:
                     'file_type': 'pdf',
                     'file_size': os.path.getsize(file_path),
                     'num_pages': num_pages,
-                    'extraction_method': 'PyPDF2 (fallback)',
+                    'extraction_method': 'PyPDF2',
                     'extraction_strategy': 'basic'
                 }
 
                 return {
                     'raw_text': raw_text,
                     'metadata': metadata,
-                    'errors': ['unstructured.io not available, used fallback extraction']
+                    'errors': []
                 }
 
         except ImportError:
             raise ImportError(
-                "Neither unstructured.io nor PyPDF2 is available. "
-                "Please install one of them: pip install unstructured[all-in-one] or pip install PyPDF2"
+                "PyPDF2 is required for PDF extraction. "
+                "Install it: pip install PyPDF2"
             )
 
     def _extract_html(self, file_path: str, start_time: float) -> Dict[str, Any]:
         """
-        Extract text from HTML file using unstructured.io.
+        Extract text from HTML file using BeautifulSoup.
 
         Args:
             file_path: Path to HTML file
@@ -205,49 +158,10 @@ class TextExtractor:
         Returns:
             Dictionary with extracted text and metadata
         """
-        try:
-            from unstructured.partition.html import partition_html
+        # Check timeout before extraction
+        if time.time() - start_time > self.extraction_timeout * 0.8:
+            raise TimeoutError("Approaching extraction timeout")
 
-            # Check timeout before extraction
-            if time.time() - start_time > self.extraction_timeout * 0.8:
-                raise TimeoutError("Approaching extraction timeout")
-
-            # Extract text from HTML
-            elements = partition_html(file_path)
-
-            # Combine text from all elements
-            raw_text = "\n".join([str(element) for element in elements])
-
-            # Extract metadata
-            metadata = {
-                'file_type': 'html',
-                'file_size': os.path.getsize(file_path),
-                'num_elements': len(elements),
-                'extraction_method': 'unstructured.io',
-                'extraction_strategy': 'html'
-            }
-
-            return {
-                'raw_text': raw_text,
-                'metadata': metadata,
-                'errors': []
-            }
-
-        except ImportError:
-            # Fallback if unstructured.io is not available
-            logger.warning("unstructured.io not available, using fallback extraction")
-            return self._extract_html_fallback(file_path)
-
-    def _extract_html_fallback(self, file_path: str) -> Dict[str, Any]:
-        """
-        Fallback HTML extraction using BeautifulSoup.
-
-        Args:
-            file_path: Path to HTML file
-
-        Returns:
-            Dictionary with extracted text and metadata
-        """
         try:
             from bs4 import BeautifulSoup
 
@@ -266,20 +180,20 @@ class TextExtractor:
             metadata = {
                 'file_type': 'html',
                 'file_size': os.path.getsize(file_path),
-                'extraction_method': 'BeautifulSoup (fallback)',
+                'extraction_method': 'BeautifulSoup',
                 'extraction_strategy': 'basic'
             }
 
             return {
                 'raw_text': raw_text,
                 'metadata': metadata,
-                'errors': ['unstructured.io not available, used fallback extraction']
+                'errors': []
             }
 
         except ImportError:
             raise ImportError(
-                "Neither unstructured.io nor BeautifulSoup is available. "
-                "Please install one of them: pip install unstructured[all-in-one] or pip install beautifulsoup4"
+                "BeautifulSoup is required for HTML extraction. "
+                "Install it: pip install beautifulsoup4"
             )
 
     def _extract_text(self, file_path: str, start_time: float) -> Dict[str, Any]:

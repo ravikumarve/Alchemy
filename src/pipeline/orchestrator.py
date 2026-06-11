@@ -75,7 +75,7 @@ class AlchemyOrchestrator:
         logger.info(f"Starting ALCHEMY pipeline for: {file_name}")
         logger.info(f"=" * 60)
 
-        result = {
+        result: Dict[str, Any] = {
             'file': file_name,
             'success': False,
             'stages': {},

@@ -371,8 +371,8 @@ class HookGenerator:
             List of best hooks
         """
         # Select top hooks with diversity
-        selected = []
-        used_types = set()
+        selected: list[dict[str, Any]] = []
+        used_types: set[str] = set()
 
         for hook in scored_hooks:
             if len(selected) >= count:

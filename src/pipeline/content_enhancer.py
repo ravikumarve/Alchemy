@@ -308,7 +308,7 @@ class ContentEnhancer:
         # In production, would analyze syllable count and stress patterns
         sentences = text.split('. ')
 
-        optimized = []
+        optimized: list[str] = []
         for sentence in sentences:
             # Ensure sentences aren't too long or too short
             words = sentence.split()

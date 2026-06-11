@@ -313,13 +313,16 @@ class VisionaryAgent:
                     scenes.append(scene)
                     cumulative_time += duration
 
+            # Determine pacing
+            pacing_profile = self._determine_pacing(cumulative_time)
+
             # Build storyboard
             storyboard = {
                 'storyboard_id': f"sb_{int(time.time())}",
                 'total_duration': cumulative_time,
                 'scene_count': len(scenes),
                 'target_duration': state['total_duration'],
-                'pacing_profile': self._determine_pacing(cumulative_time),
+                'pacing_profile': pacing_profile,
                 'visual_style': state['visual_style'],
                 'scenes': scenes,
                 'generated_at': datetime.utcnow().isoformat()
@@ -329,7 +332,7 @@ class VisionaryAgent:
             state['scenes'] = scenes
             state['scene_count'] = len(scenes)
             state['total_duration'] = cumulative_time
-            state['pacing_profile'] = storyboard['pacing_profile']
+            state['pacing_profile'] = pacing_profile
             state['current_step'] = "generate_storyboard"
             state['step_times']['generate_storyboard'] = time.time() - step_start
 

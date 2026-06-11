@@ -407,7 +407,7 @@ class TableExtractor:
         Returns:
             List of extracted tables
         """
-        tables = []
+        tables: list[dict[str, Any]] = []
         lines = text.split('\n')
 
         i = 0
@@ -438,7 +438,7 @@ class TableExtractor:
 
                 # Parse table
                 if len(table_lines) >= 3:
-                    table = self._parse_grid_table(table_lines)
+                    table = self._parse_grid_table(table_lines, tables)
                     if table:
                         tables.append(table)
 
@@ -446,12 +446,13 @@ class TableExtractor:
 
         return tables
 
-    def _parse_grid_table(self, lines: List[str]) -> Optional[Dict[str, Any]]:
+    def _parse_grid_table(self, lines: List[str], existing_tables: Optional[List[Dict[str, Any]]] = None) -> Optional[Dict[str, Any]]:
         """
         Parse ASCII grid table into structured format.
 
         Args:
             lines: List of grid table lines
+            existing_tables: List of already-parsed tables (used for table_id)
 
         Returns:
             Parsed table dictionary or None if parsing fails
@@ -478,8 +479,9 @@ class TableExtractor:
             if not headers or not data_rows:
                 return None
 
+            existing = existing_tables if existing_tables is not None else []
             return {
-                'table_id': f"table_{len(tables) + 1}",
+                'table_id': f"table_{len(existing) + 1}",
                 'format': 'grid',
                 'headers': headers,
                 'rows': data_rows,
