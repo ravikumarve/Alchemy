@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      target: api
+    container_name: alchemy-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./raw_ore:/app/raw_ore
+      - ./processed_gold:/app/processed_gold
+      - ./logs:/app/logs
+      - ./alchemy.db:/app/alchemy.db
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  pipeline-runner:
+    build:
+      context: .
+      target: pipeline
+    container_name: alchemy-pipeline
+    profiles:
+      - runner  # Only runs when explicitly started
+    volumes:
+      - ./raw_ore:/app/raw_ore
+      - ./processed_gold:/app/processed_gold
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    command: ["/app/raw_ore"]

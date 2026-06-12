@@ -2,7 +2,6 @@
 
 # Agent definitions (copied from agency-agents, not to be committed)
 /agents/
-/AGENTS.md
 /data-consolidation-agent.md
 /design-ui-designer.md
 /design-ux-architect.md
