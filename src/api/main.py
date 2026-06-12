@@ -7,17 +7,65 @@ Provides endpoints for file processing, job management, and package retrieval.
 
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 import uuid
 import os
+import time
 import logging
 
+# Try Prometheus client (optional — graceful fallback)
+try:
+    from prometheus_client import generate_latest, Counter, Histogram, Gauge, REGISTRY
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+log_level = os.getenv('LOG_LEVEL', 'INFO')
+log_format = os.getenv('LOG_FORMAT', 'standard')
+
+logging.basicConfig(level=getattr(logging, log_level.upper(), logging.INFO))
 logger = logging.getLogger(__name__)
+
+# Structured JSON logging for production
+if log_format == 'json':
+    import json as json_lib
+
+    class JsonFormatter(logging.Formatter):
+        def format(self, record):
+            log_entry = {
+                'timestamp': datetime.utcnow().isoformat(),
+                'level': record.levelname,
+                'logger': record.name,
+                'message': record.getMessage(),
+            }
+            if hasattr(record, 'duration'):
+                log_entry['duration'] = record.duration
+            if record.exc_info and record.exc_info[0]:
+                log_entry['exception'] = self.formatException(record.exc_info)
+            return json_lib.dumps(log_entry)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(JsonFormatter())
+    logger.handlers.clear()
+    logger.addHandler(handler)
+
+# Application startup time for uptime tracking
+_start_time = time.time()
+
+# Prometheus metrics (if available)
+if PROMETHEUS_AVAILABLE:
+    jobs_total = Counter('alchemy_jobs_total', 'Total processing jobs created', ['status'])
+    jobs_duration = Histogram('alchemy_job_duration_seconds', 'Job processing duration', buckets=[0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0])
+    files_processed = Counter('alchemy_files_processed_total', 'Files processed', ['format', 'success'])
+    active_jobs = Gauge('alchemy_active_jobs', 'Currently active processing jobs')
+    pipeline_duration = Histogram('alchemy_pipeline_duration_seconds', 'Full pipeline duration', buckets=[1.0, 2.5, 5.0, 10.0, 30.0, 60.0])
+    logger.info("Prometheus metrics enabled")
+else:
+    logger.info("Prometheus client not available — metrics disabled")
 
 # Create FastAPI application
 app = FastAPI(
@@ -112,7 +160,32 @@ async def health_check():
         status="healthy",
         version=app.version,
         timestamp=datetime.utcnow().isoformat(),
-        uptime=0.0  # TODO: Implement actual uptime tracking
+        uptime=time.time() - _start_time
+    )
+
+
+# Metrics endpoint (Prometheus format)
+@app.get("/metrics", tags=["Monitoring"])
+async def metrics():
+    """
+    Prometheus metrics endpoint.
+
+    Returns pipeline and system metrics in Prometheus text format.
+    Requires prometheus-client library.
+    """
+    if not PROMETHEUS_AVAILABLE:
+        return PlainTextResponse(
+            "# Prometheus client not installed. Install: pip install prometheus-client\n",
+            media_type="text/plain"
+        )
+
+    # Update active jobs gauge
+    active_count = sum(1 for j in processing_jobs.values() if j["status"] in ("pending", "processing"))
+    active_jobs.set(active_count)
+
+    return PlainTextResponse(
+        generate_latest(REGISTRY).decode('utf-8'),
+        media_type="text/plain"
     )
 
 
@@ -208,6 +281,8 @@ async def process_file_background(job_id: str, file_path: str):
         # Update job status
         processing_jobs[job_id]["status"] = "processing"
         processing_jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
+        if PROMETHEUS_AVAILABLE:
+            active_jobs.inc()
 
         logger.info(f"Starting background processing for job {job_id}")
 
@@ -218,7 +293,9 @@ async def process_file_background(job_id: str, file_path: str):
         agent = ArchaeologistAgent()
 
         # Process file
+        process_start = time.time()
         result = agent.process_file(file_path)
+        duration = time.time() - process_start
 
         # Update job status based on result
         if result["success"]:
@@ -238,6 +315,15 @@ async def process_file_background(job_id: str, file_path: str):
 
             logger.error(f"Job {job_id} failed: {result['errors']}")
 
+        # Record Prometheus metrics
+        if PROMETHEUS_AVAILABLE:
+            file_ext = os.path.splitext(file_path)[1].lower() if file_path else 'unknown'
+            jobs_total.labels(status=processing_jobs[job_id]["status"]).inc()
+            files_processed.labels(format=file_ext, success=str(result["success"])).inc()
+            active_jobs.dec()
+            if processing_jobs[job_id]["processing_time"]:
+                jobs_duration.observe(processing_jobs[job_id]["processing_time"])
+
         processing_jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
 
     except Exception as e:
@@ -247,6 +333,10 @@ async def process_file_background(job_id: str, file_path: str):
         processing_jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
 
         logger.error(f"Job {job_id} encountered error: {str(e)}")
+
+        if PROMETHEUS_AVAILABLE:
+            jobs_total.labels(status="failed").inc()
+            active_jobs.dec()
 
 
 # Get job status endpoint
