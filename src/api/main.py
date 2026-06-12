@@ -86,8 +86,8 @@ app.add_middleware(
 )
 
 # Global state (in production, use database)
-processing_jobs = {}
-packages = {}
+processing_jobs: Dict[str, Any] = {}
+packages: Dict[str, Any] = {}
 
 
 # Pydantic models for request/response
@@ -220,6 +220,8 @@ async def process_file(
     Supported file formats: PDF, TXT, HTML
     """
     # Validate file format
+    if file.filename is None:
+        raise HTTPException(status_code=400, detail="File must have a filename")
     file_ext = os.path.splitext(file.filename)[1].lower()
     supported_extensions = ['.pdf', '.txt', '.html', '.htm']
 
@@ -322,7 +324,8 @@ async def process_file_background(job_id: str, file_path: str):
             files_processed.labels(format=file_ext, success=str(result["success"])).inc()
             active_jobs.dec()
             if processing_jobs[job_id]["processing_time"]:
-                jobs_duration.observe(processing_jobs[job_id]["processing_time"])
+                pt: float = processing_jobs[job_id]["processing_time"]  # type: ignore[assignment]
+                jobs_duration.observe(pt)
 
         processing_jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
 
