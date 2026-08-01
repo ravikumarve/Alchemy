@@ -44,6 +44,10 @@ ENV/
 env/
 .venv
 
+# Frontend lib/ (tracked — Next.js app code, not Python venv artifacts)
+!/lib/
+!/lib/**
+
 # IDE
 .vscode/
 .idea/
