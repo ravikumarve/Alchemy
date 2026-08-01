@@ -2,21 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  images: {
-    domains: ['localhost'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
-  },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   },
   // Performance optimizations
   experimental: {
-    optimizeCss: true,
+    cpus: 1,
     optimizePackageImports: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
   },
   // Bundle optimization
@@ -27,6 +18,7 @@ const nextConfig = {
   generateEtags: true,
   // Image optimization
   images: {
+    domains: ['localhost'],
     formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
@@ -54,17 +46,11 @@ const nextConfig = {
   compress: true,
   // Static file optimization
   trailingSlash: true,
-  // Service worker configuration
-  serviceWorker: {
-    path: 'sw.js',
-    register: true,
-    scope: '/',
-  },
   // Cache control
   headers: async () => {
     return [
       {
-        source: '/(.*)\.(?:png|jpg|jpeg|gif|ico|svg|webp|avif)$',
+        source: '/(.*)\\.(png|jpg|jpeg|gif|ico|svg|webp|avif)$',
         headers: [
           {
             key: 'Cache-Control',
@@ -73,7 +59,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/(.*)\.(?:js|css|json)$',
+        source: '/(.*)\\.(js|css|json)$',
         headers: [
           {
             key: 'Cache-Control',

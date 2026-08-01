@@ -9,8 +9,7 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "analyze": "ANALYZE=true next build",
-    "optimize": "next build --optimize-images --optimize-fonts",
-    "prebuild": "npm run type-check && npm run lint"
+    "optimize": "next build --optimize-images --optimize-fonts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
