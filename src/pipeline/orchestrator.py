@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.agents.archaeologist import ArchaeologistAgent
 from src.agents.trend_jacker import TrendJackerAgent
 from src.agents.visionary import VisionaryAgent
+from src.agents.researcher import ResearcherAgent
 
 # Configure logging
 logging.basicConfig(
@@ -42,11 +43,16 @@ class AlchemyOrchestrator:
     raw content into Gumroad-ready digital assets.
     """
 
-    def __init__(self):
-        """Initialize orchestrator with all three agents."""
+    def __init__(self, force_offline: bool = False):
+        """Initialize orchestrator with all four agents.
+
+        Args:
+            force_offline: Force offline corpus backend for topic research
+        """
         self.archaeologist = ArchaeologistAgent()
         self.trend_jacker = TrendJackerAgent()
         self.visionary = VisionaryAgent()
+        self.researcher = ResearcherAgent(force_offline=force_offline)
 
         self.raw_dir = Path("raw_ore")
         self.output_dir = Path("processed_gold")
@@ -166,6 +172,119 @@ class AlchemyOrchestrator:
 
         return result
 
+    def process_topic(self, topic: str,
+                      asset_type: str = "youtube_short") -> Dict[str, Any]:
+        """
+        Process a user topic idea through the complete pipeline.
+
+        Researcher → Trend-Jacker → Visionary
+        (The Researcher produces an Archaeologist-compatible package, so
+        Trend-Jacker and Visionary require zero changes.)
+
+        Args:
+            topic: User topic idea (e.g., "Stoicism for modern entrepreneurs")
+            asset_type: Target asset type
+
+        Returns:
+            Dictionary with complete processing results
+        """
+        total_start = time.time()
+        logger.info(f"=" * 60)
+        logger.info(f"Starting ALCHEMY topic pipeline for: {topic}")
+        logger.info(f"=" * 60)
+
+        result: Dict[str, Any] = {
+            'topic': topic,
+            'success': False,
+            'stages': {},
+            'total_time': 0.0,
+            'errors': []
+        }
+
+        try:
+            # Stage 1: Researcher
+            logger.info("\n[STAGE 1/3] Researcher - Researching topic...")
+            stage_start = time.time()
+            res_result = self.researcher.process_topic(topic)
+            stage_time = time.time() - stage_start
+
+            result['stages']['researcher'] = {
+                'success': res_result['success'],
+                'time': stage_time,
+                'package_id': res_result.get('package', {}).get('package_id', 'N/A'),
+                'chunks': len(res_result.get('package', {}).get('content', [])),
+                'backend': res_result.get('state', {}).get('search_backend', 'unknown'),
+                'queries': res_result.get('state', {}).get('search_queries', [])
+            }
+
+            if not res_result['success']:
+                raise Exception(f"Researcher failed: {res_result.get('errors', ['Unknown error'])}")
+
+            logger.info(f"  ✓ Researcher completed in {stage_time:.2f}s "
+                        f"({result['stages']['researcher']['backend']} backend)")
+
+            # Stage 2: Trend-Jacker
+            logger.info("\n[STAGE 2/3] Trend-Jacker - Contextualizing content...")
+            stage_start = time.time()
+            tj_result = self.trend_jacker.process(res_result['package'])
+            stage_time = time.time() - stage_start
+
+            result['stages']['trend_jacker'] = {
+                'success': tj_result['status'] == 'completed',
+                'time': stage_time,
+                'package_id': tj_result.get('package_id', 'N/A'),
+                'hooks': len(tj_result.get('package', {}).get('hooks', [])),
+                'engagement_score': tj_result.get('package', {}).get('engagement_score', 0.0)
+            }
+
+            if tj_result['status'] != 'completed':
+                raise Exception(f"Trend-Jacker failed with status: {tj_result['status']}")
+
+            logger.info(f"  ✓ Trend-Jacker completed in {stage_time:.2f}s")
+
+            # Stage 3: Visionary
+            logger.info("\n[STAGE 3/3] Visionary - Generating media assets...")
+            stage_start = time.time()
+            vis_result = self.visionary.process(tj_result['package'], asset_type)
+            stage_time = time.time() - stage_start
+
+            result['stages']['visionary'] = {
+                'success': vis_result['status'] == 'completed',
+                'time': stage_time,
+                'package_id': vis_result.get('package_id', 'N/A'),
+                'output_path': vis_result.get('output_path', 'N/A'),
+                'scenes': vis_result.get('package', {}).get('metadata', {}).get('scene_count', 0)
+            }
+
+            if vis_result['status'] != 'completed':
+                raise Exception(f"Visionary failed with status: {vis_result['status']}")
+
+            logger.info(f"  ✓ Visionary completed in {stage_time:.2f}s")
+
+            # Success
+            result['success'] = True
+            result['output_path'] = vis_result.get('output_path', '')
+            result['final_package_id'] = vis_result.get('package_id', '')
+
+        except Exception as e:
+            logger.error(f"Pipeline failed: {str(e)}")
+            result['errors'].append(str(e))
+
+        result['total_time'] = time.time() - total_start
+
+        # Print summary
+        logger.info(f"\n{'=' * 60}")
+        logger.info(f"TOPIC PIPELINE {'COMPLETED' if result['success'] else 'FAILED'}")
+        logger.info(f"Total time: {result['total_time']:.2f}s")
+        logger.info(f"Topic: {topic}")
+        if result['success']:
+            logger.info(f"Output: {result.get('output_path', 'N/A')}")
+        else:
+            logger.info(f"Errors: {result['errors']}")
+        logger.info(f"{'=' * 60}")
+
+        return result
+
     def process_all(self, asset_type: str = "youtube_short") -> Dict[str, Any]:
         """
         Process all files in raw_ore/ directory.
@@ -213,16 +332,28 @@ def main():
         help='Path to file to process (if omitted, processes all files in raw_ore/)'
     )
     parser.add_argument(
+        '--topic',
+        help='Topic idea to research (e.g., "Stoicism for modern entrepreneurs")'
+    )
+    parser.add_argument(
         '--asset-type', default='youtube_short',
         choices=['youtube_short', 'tiktok', 'instagram_reel', 'gumroad_pack', 'b_roll_library'],
         help='Target asset type (default: youtube_short)'
     )
+    parser.add_argument(
+        '--offline', action='store_true',
+        help='Force offline corpus backend for topic research (no Tavily API)'
+    )
 
     args = parser.parse_args()
 
-    orchestrator = AlchemyOrchestrator()
+    orchestrator = AlchemyOrchestrator(force_offline=args.offline)
 
-    if args.file:
+    if args.topic:
+        result = orchestrator.process_topic(args.topic, args.asset_type)
+        if not result['success']:
+            sys.exit(1)
+    elif args.file:
         result = orchestrator.process_file(args.file, args.asset_type)
         if not result['success']:
             sys.exit(1)

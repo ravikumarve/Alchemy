@@ -584,5 +584,71 @@ class TestIntegration:
                 os.unlink(p)
 
 
+class TestExploreEndpoint:
+    """Test the topic explore endpoint (Researcher Agent)."""
+
+    def test_explore_topic_creates_job(self):
+        """Test explore endpoint creates a job."""
+        client = TestClient(app)
+
+        response = client.post(
+            "/api/v1/explore",
+            json={"topic": "Stoicism for modern entrepreneurs"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "job_id" in data
+        assert data["status"] == "pending"
+        assert "topic" in data
+        assert data["topic"] == "Stoicism for modern entrepreneurs"
+
+    def test_explore_topic_empty(self):
+        """Test explore endpoint rejects whitespace-only topic."""
+        client = TestClient(app)
+
+        response = client.post(
+            "/api/v1/explore",
+            json={"topic": "  "}
+        )
+
+        assert response.status_code == 400  # stripped to empty
+        assert "Topic cannot be empty" in response.json()["detail"]
+
+    def test_explore_topic_short(self):
+        """Test explore endpoint rejects too-short topic."""
+        client = TestClient(app)
+
+        response = client.post(
+            "/api/v1/explore",
+            json={"topic": "x"}
+        )
+
+        assert response.status_code == 422
+
+    def test_explore_topic_invalid_asset_type(self):
+        """Test explore endpoint rejects invalid asset type."""
+        client = TestClient(app)
+
+        response = client.post(
+            "/api/v1/explore",
+            json={"topic": "Stoicism", "asset_type": "invalid_type"}
+        )
+
+        assert response.status_code == 422
+
+    def test_explore_topic_asset_type(self):
+        """Test explore endpoint accepts custom asset type."""
+        client = TestClient(app)
+
+        response = client.post(
+            "/api/v1/explore",
+            json={"topic": "Stoicism", "asset_type": "tiktok"}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["status"] == "pending"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

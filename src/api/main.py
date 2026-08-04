@@ -111,6 +111,24 @@ class ProcessFileResponse(BaseModel):
     created_at: str
 
 
+class ExploreRequest(BaseModel):
+    """Explore topic request model"""
+    topic: str = Field(..., min_length=2, max_length=200,
+                       description="Topic idea to research")
+    asset_type: str = Field("youtube_short",
+                            pattern="^(youtube_short|tiktok|instagram_reel|gumroad_pack|b_roll_library)$",
+                            description="Target asset type")
+
+
+class ExploreResponse(BaseModel):
+    """Explore topic response model"""
+    job_id: str
+    status: str
+    message: str
+    topic: str
+    created_at: str
+
+
 class PackageResponse(BaseModel):
     """Package response model"""
     package_id: str
@@ -326,6 +344,128 @@ async def process_file_background(job_id: str, file_path: str):
             if processing_jobs[job_id]["processing_time"]:
                 pt: float = processing_jobs[job_id]["processing_time"]  # type: ignore[assignment]
                 jobs_duration.observe(pt)
+
+        processing_jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
+
+    except Exception as e:
+        # Update job status with error
+        processing_jobs[job_id]["status"] = "failed"
+        processing_jobs[job_id]["error_message"] = str(e)
+        processing_jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
+
+        logger.error(f"Job {job_id} encountered error: {str(e)}")
+
+        if PROMETHEUS_AVAILABLE:
+            jobs_total.labels(status="failed").inc()
+            active_jobs.dec()
+
+
+# Explore topic endpoint (Researcher Agent)
+@app.post("/api/v1/explore", response_model=ExploreResponse, tags=["Processing"])
+async def explore_topic(
+    background_tasks: BackgroundTasks,
+    request: ExploreRequest,
+):
+    """
+    Research a topic idea through the Researcher Agent.
+
+    This endpoint accepts a topic string, researches it via web search,
+    and runs it through the full Trend-Jacker → Visionary pipeline.
+    Processing happens in the background; a job ID is returned for tracking.
+
+    Example body:
+        {"topic": "Stoicism for modern entrepreneurs", "asset_type": "youtube_short"}
+    """
+    topic = request.topic.strip()
+    if not topic:
+        raise HTTPException(status_code=400, detail="Topic cannot be empty")
+
+    # Generate job ID
+    job_id = str(uuid.uuid4())
+
+    # Create job record
+    processing_jobs[job_id] = {
+        "job_id": job_id,
+        "status": "pending",
+        "file_path": None,
+        "file_name": f"topic: {topic}",
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat(),
+        "processing_time": None,
+        "error_message": None,
+        "package_id": None
+    }
+
+    # Add background task for processing
+    background_tasks.add_task(explore_topic_background, job_id, topic, request.asset_type)
+
+    logger.info(f"Created explore job {job_id} for topic: {topic}")
+
+    return ExploreResponse(
+        job_id=job_id,
+        status="pending",
+        message=f"Topic research started. Use job_id {job_id} to track progress.",
+        topic=topic,
+        created_at=processing_jobs[job_id]["created_at"]
+    )
+
+
+# Background topic processing function
+async def explore_topic_background(job_id: str, topic: str, asset_type: str):
+    """
+    Background task to research a topic through the full pipeline.
+
+    Args:
+        job_id: Unique job identifier
+        topic: Topic idea to research
+        asset_type: Target asset type
+    """
+    try:
+        # Update job status
+        processing_jobs[job_id]["status"] = "processing"
+        processing_jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
+        if PROMETHEUS_AVAILABLE:
+            active_jobs.inc()
+
+        logger.info(f"Starting background topic research for job {job_id}: {topic}")
+
+        # Import orchestrator here to avoid circular imports
+        from src.pipeline.orchestrator import AlchemyOrchestrator
+
+        # Initialize orchestrator
+        orchestrator = AlchemyOrchestrator()
+
+        # Process topic
+        process_start = time.time()
+        result = orchestrator.process_topic(topic, asset_type)
+        duration = time.time() - process_start
+
+        # Update job status based on result
+        if result["success"]:
+            processing_jobs[job_id]["status"] = "completed"
+            processing_jobs[job_id]["processing_time"] = result["total_time"]
+
+            # Store final package
+            final_package_id = result.get("final_package_id")
+            if final_package_id:
+                processing_jobs[job_id]["package_id"] = final_package_id
+
+            logger.info(f"Job {job_id} completed successfully in {result['total_time']:.2f}s")
+        else:
+            processing_jobs[job_id]["status"] = "failed"
+            processing_jobs[job_id]["error_message"] = str(result["errors"])
+            processing_jobs[job_id]["processing_time"] = result["total_time"]
+
+            logger.error(f"Job {job_id} failed: {result['errors']}")
+
+        # Record Prometheus metrics
+        if PROMETHEUS_AVAILABLE:
+            jobs_total.labels(status=processing_jobs[job_id]["status"]).inc()
+            files_processed.labels(format="topic", success=str(result["success"])).inc()
+            active_jobs.dec()
+            if processing_jobs[job_id]["processing_time"]:
+                pt2: float = processing_jobs[job_id]["processing_time"]  # type: ignore[assignment]
+                jobs_duration.observe(pt2)
 
         processing_jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
 
