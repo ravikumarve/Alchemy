@@ -173,6 +173,16 @@ alchemy/
 ---
 ## 💾 Session Memory Ledger
 
+### [2026-08-04 13:10] - Phase 7 Researcher Agent Complete (Idea → Asset Pack)
+- **State:** Success — Researcher Agent built, wired into pipeline + API, committed c756caa (not pushed)
+- **MCP Data Used:** Direct file reads, code_tree patterns, mypy/pytest verification, live API smoke test
+- **Agents Deployed:** Orchestrator (direct execution — deterministic rule-based agent, no sub-agents needed)
+- **Architectural Decision:** Researcher is deterministic rule-based (Tavily web backend + LocalCorpusBackend offline fallback via `ALCHEMY_OFFLINE=1`/`--offline`), NO LLM runtime — matches CPU-only philosophy. Shares the same data contract as Archaeologist output so Trend-Jacker + Visionary are UNCHANGED.
+- **Key Deliverables:** `src/pipeline/web_researcher.py` (search + synthesis + build_package), `src/agents/researcher.py` (5-step LangGraph + CLI), `src/agents/researcher_state.py`, `orchestrator.process_topic()` + CLI `--topic`/`--offline`, `POST /api/v1/explore` + ExploreRequest/ExploreResponse, 45 new tests (42 researcher + 5 API explore). **168/168 tests pass, mypy clean.**
+- **E2E Verified:** CLI `--topic --offline` → full pipeline 0.13s; live API POST /api/v1/explore → job completed, 8-scene storyboard JSON in processed_gold/
+- **Note:** Old uvicorn on port 8000 (pid 79754, started Jul 29) still runs pre-Phase-7 code (no /explore route) — restart to pick up new code when convenient.
+- **Next Turn Directive:** Push c756caa to origin, then pursue Phase 7 monetization: package as Gumroad product ("AI Content Factory you own" $79/$149) or continue Phase 7 (cloud migration, ZIP delivery, billing)
+
 ### [2026-08-01 15:05] - Frontend Build Unblocked (First Successful `next build`)
 - **State:** Success — `.next/` production build created for the first time ever on the Latitude
 - **MCP Data Used:** Direct file reads + system diagnostics (free/df/ps/file)
